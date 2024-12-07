@@ -268,7 +268,7 @@ func prepOauth2Test(t *testing.T, loginPort, authPort int, btHook BearerTokenHoo
 		},
 		scopes:  []string{"user:email"},
 		infoURL: fmt.Sprintf("http://localhost:%d/user", authPort),
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:      "mock_" + data.Value("id"),
 				Name:    data.Value("name"),

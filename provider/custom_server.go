@@ -24,7 +24,7 @@ import (
 type CustomHandlerOpt struct {
 	Endpoint          oauth2.Endpoint
 	InfoURL           string
-	MapUserFn         func(UserData, []byte) token.User
+	MapUserFn         func(*http.Request, UserData, []byte) token.User
 	BearerTokenHookFn BearerTokenHook
 	Scopes            []string
 }
@@ -218,7 +218,7 @@ func NewCustom(name string, p Params, copts CustomHandlerOpt) Oauth2Handler {
 	})
 }
 
-func defaultMapUserFn(data UserData, _ []byte) token.User {
+func defaultMapUserFn(r *http.Request, data UserData, _ []byte) token.User {
 	userInfo := token.User{
 		ID:      data.Value("id"),
 		Name:    data.Value("name"),

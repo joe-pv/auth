@@ -183,7 +183,7 @@ func NewDev(p Params) Oauth2Handler {
 		},
 		scopes:  []string{"user:email"},
 		infoURL: fmt.Sprintf("http://%s:%d/user", p.Host, p.Port),
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:      data.Value("id"),
 				Name:    data.Value("name"),

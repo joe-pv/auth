@@ -5,6 +5,7 @@ import (
 	"crypto/sha1" //nolint
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/dghubble/oauth1"
 	"github.com/dghubble/oauth1/twitter"
@@ -27,7 +28,7 @@ func NewGoogle(p Params) Oauth2Handler {
 		endpoint: google.Endpoint,
 		scopes:   []string{"https://www.googleapis.com/auth/userinfo.profile"},
 		infoURL:  "https://www.googleapis.com/oauth2/v3/userinfo",
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				// encode email with provider name to avoid collision if same id returned by other provider
 				ID:      "google_" + token.HashID(sha1.New(), data.Value("sub")),
@@ -52,7 +53,7 @@ func NewGithub(p Params) Oauth2Handler {
 		endpoint: github.Endpoint,
 		scopes:   []string{},
 		infoURL:  "https://api.github.com/user",
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:      "github_" + token.HashID(sha1.New(), data.Value("login")),
 				Name:    data.Value("name"),
@@ -89,7 +90,7 @@ func NewFacebook(p Params) Oauth2Handler {
 		endpoint: facebook.Endpoint,
 		scopes:   []string{"public_profile"},
 		infoURL:  "https://graph.facebook.com/me?fields=id,name,picture",
-		mapUser: func(data UserData, bdata []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, bdata []byte) token.User {
 			userInfo := token.User{
 				ID:   "facebook_" + token.HashID(sha1.New(), data.Value("id")),
 				Name: data.Value("name"),
@@ -118,7 +119,7 @@ func NewYandex(p Params) Oauth2Handler {
 		scopes:   []string{},
 		// See https://tech.yandex.com/passport/doc/dg/reference/response-docpage/
 		infoURL: "https://login.yandex.ru/info?format=json",
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:   "yandex_" + token.HashID(sha1.New(), data.Value("id")),
 				Name: data.Value("display_name"), // using Display Name by default
@@ -177,7 +178,7 @@ func NewBattlenet(p Params) Oauth2Handler {
 		},
 		scopes:  []string{},
 		infoURL: "https://eu.battle.net/oauth/userinfo",
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:   "battlenet_" + token.HashID(sha1.New(), data.Value("id")),
 				Name: data.Value("battletag"),
@@ -199,7 +200,7 @@ func NewMicrosoft(p Params) Oauth2Handler {
 		infoURL:  "https://graph.microsoft.com/v1.0/me",
 		// non-beta doesn't provide photo for consumers yet
 		// see https://github.com/microsoftgraph/microsoft-graph-docs/issues/3990
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:      "microsoft_" + token.HashID(sha1.New(), data.Value("id")),
 				Name:    data.Value("displayName"),
@@ -244,7 +245,7 @@ func NewPatreon(p Params) Oauth2Handler {
 		scopes:  []string{},
 		infoURL: "https://www.patreon.com/api/oauth2/api/current_user",
 
-		mapUser: func(data UserData, bdata []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, bdata []byte) token.User {
 			userInfo := token.User{}
 
 			uinfoJSON := uinfo{}
@@ -277,7 +278,7 @@ func NewDiscord(p Params) Oauth2Handler {
 		},
 		infoURL: "https://discord.com/api/v10/users/@me",
 		scopes:  []string{"identify"},
-		mapUser: func(data UserData, _ []byte) token.User {
+		mapUser: func(r *http.Request, data UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID:      "discord_" + token.HashID(sha1.New(), data.Value("id")),
 				Name:    data.Value("username"),

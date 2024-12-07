@@ -26,8 +26,8 @@ type Oauth2Handler struct {
 	infoURL         string
 	endpoint        oauth2.Endpoint
 	scopes          []string
-	mapUser         func(UserData, []byte) token.User // map info from InfoURL to User
-	bearerTokenHook BearerTokenHook                   // a way to get a Bearer token received from oauth2-provider
+	mapUser         func(*http.Request, UserData, []byte) token.User // map info from InfoURL to User
+	bearerTokenHook BearerTokenHook                                  // a way to get a Bearer token received from oauth2-provider
 	conf            oauth2.Config
 }
 
@@ -191,7 +191,7 @@ func (p Oauth2Handler) AuthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	p.Logf("[DEBUG] got raw user info %+v", jData)
 
-	u := p.mapUser(jData, data)
+	u := p.mapUser(r, jData, data)
 	if oauthClaims.NoAva {
 		u.Picture = "" // reset picture on no avatar request
 	}
