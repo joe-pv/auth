@@ -72,6 +72,8 @@ type Opts struct {
 	AudSecrets       bool                     // allow multiple secrets (secret per aud)
 	Logger           logger.L                 // logger interface, default is no logging at all
 	RefreshCache     middleware.RefreshCache  // optional cache to keep refreshed tokens
+
+	Test string
 }
 
 // NewService initializes everything
