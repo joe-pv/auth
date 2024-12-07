@@ -34,7 +34,7 @@ type DirectHandler struct {
 
 // CredChecker defines interface to check credentials
 type CredChecker interface {
-	Check(user, password string) (ok bool, err error)
+	Check(r *http.Request, user, password string) (ok bool, err error)
 }
 
 // UserIDFunc allows to provide custom func making userID instead of the default based on user's name hash
@@ -87,7 +87,7 @@ func (p DirectHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Errorf("no credential checker"), "no credential checker")
 		return
 	}
-	ok, err := p.CredChecker.Check(creds.User, creds.Password)
+	ok, err := p.CredChecker.Check(r, creds.User, creds.Password)
 	if err != nil {
 		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "failed to check user credentials")
 		return
