@@ -41,11 +41,11 @@ type CredChecker interface {
 type UserIDFunc func(user string, r *http.Request) string
 
 // CredCheckerFunc type is an adapter to allow the use of ordinary functions as CredsChecker.
-type CredCheckerFunc func(user, password string) (ok bool, err error)
+type CredCheckerFunc func(r *http.Request, user, password string) (ok bool, err error)
 
 // Check calls f(user,passwd)
-func (f CredCheckerFunc) Check(user, password string) (ok bool, err error) {
-	return f(user, password)
+func (f CredCheckerFunc) Check(r *http.Request, user, password string) (ok bool, err error) {
+	return f(r, user, password)
 }
 
 // credentials holds user credentials

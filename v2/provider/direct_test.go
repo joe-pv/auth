@@ -253,18 +253,18 @@ func TestDirect_AuthHandler(t *testing.T) {
 }
 
 func TestDirect_CredChecker(t *testing.T) {
-	ch := CredCheckerFunc(func(user string, password string) (ok bool, err error) {
+	ch := CredCheckerFunc(func(r *http.Request, user string, password string) (ok bool, err error) {
 		if user == "dev" && password == "password" {
 			return true, nil
 		}
 		return false, nil
 	})
 
-	ok, err := ch.Check("user", "blah")
+	ok, err := ch.Check(nil, "user", "blah")
 	assert.NoError(t, err)
 	assert.False(t, ok)
 
-	ok, err = ch.Check("dev", "password")
+	ok, err = ch.Check(nil, "dev", "password")
 	assert.NoError(t, err)
 	assert.True(t, ok)
 }
@@ -274,4 +274,6 @@ type mockCredsChecker struct {
 	err error
 }
 
-func (m *mockCredsChecker) Check(string, string) (ok bool, err error) { return m.ok, m.err }
+func (m *mockCredsChecker) Check(*http.Request, string, string) (ok bool, err error) {
+	return m.ok, m.err
+}
