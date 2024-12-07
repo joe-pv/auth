@@ -345,8 +345,8 @@ func TestBadRequests(t *testing.T) {
 
 func TestDirectProvider(t *testing.T) {
 	_, teardown := prepService(t, func(svc *Service) {
-		svc.AddDirectProvider("direct", provider.CredCheckerFunc(func(r *http.Request, user, password string) (ok bool, err error) {
-			return user == "dev_direct" && password == "password", nil
+		svc.AddDirectProvider("direct", provider.CredCheckerFunc(func(r *http.Request, user, password string) (u *token.User, ok bool, err error) {
+			return nil, user == "dev_direct" && password == "password", nil
 		}))
 	})
 	defer teardown()
@@ -388,8 +388,8 @@ func TestDirectProvider(t *testing.T) {
 func TestDirectProvider_WithCustomUserIDFunc(t *testing.T) {
 	_, teardown := prepService(t, func(svc *Service) {
 		svc.AddDirectProviderWithUserIDFunc("directCustom",
-			provider.CredCheckerFunc(func(r *http.Request, user, password string) (ok bool, err error) {
-				return user == "dev_direct" && password == "password", nil
+			provider.CredCheckerFunc(func(r *http.Request, user, password string) (u *token.User, ok bool, err error) {
+				return nil, user == "dev_direct" && password == "password", nil
 			}),
 			func(user string, r *http.Request) string {
 				return "blah"

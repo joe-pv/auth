@@ -170,7 +170,7 @@ func main() {
 			TokenURL: "https://bitbucket.org/site/oauth2/access_token",
 		},
 		InfoURL: "https://api.bitbucket.org/2.0/user/",
-		MapUserFn: func(data provider.UserData, _ []byte) token.User {
+		MapUserFn: func(r *http.Request, data provider.UserData, _ []byte) token.User {
 			userInfo := token.User{
 				ID: "bitbucket_" + token.HashID(sha1.New(),
 					data.Value("username")),
@@ -225,18 +225,18 @@ func anonymousAuthProvider() provider.CredCheckerFunc {
 	log.Printf("[WARN] anonymous access enabled")
 	var isValidAnonName = regexp.MustCompile(`^[a-zA-Z][\w ]+$`).MatchString
 
-	return func(user, _ string) (ok bool, err error) {
+	return func(r *http.Request, user, _ string) (u *token.User, ok bool, err error) {
 		user = strings.TrimSpace(user)
 		if len(user) < 3 {
 			log.Printf("[WARN] name %q is too short, should be at least 3 characters", user)
-			return false, nil
+			return nil, false, nil
 		}
 
 		if !isValidAnonName(user) {
 			log.Printf("[WARN] name %q should have letters, digits, underscores and spaces only", user)
-			return false, nil
+			return nil, false, nil
 		}
-		return true, nil
+		return nil, true, nil
 	}
 }
 

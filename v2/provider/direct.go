@@ -34,17 +34,17 @@ type DirectHandler struct {
 
 // CredChecker defines interface to check credentials
 type CredChecker interface {
-	Check(r *http.Request, user, password string) (ok bool, err error)
+	Check(r *http.Request, user, password string) (u *token.User, ok bool, err error)
 }
 
 // UserIDFunc allows to provide custom func making userID instead of the default based on user's name hash
 type UserIDFunc func(user string, r *http.Request) string
 
 // CredCheckerFunc type is an adapter to allow the use of ordinary functions as CredsChecker.
-type CredCheckerFunc func(r *http.Request, user, password string) (ok bool, err error)
+type CredCheckerFunc func(r *http.Request, user, password string) (u *token.User, ok bool, err error)
 
 // Check calls f(user,passwd)
-func (f CredCheckerFunc) Check(r *http.Request, user, password string) (ok bool, err error) {
+func (f CredCheckerFunc) Check(r *http.Request, user, password string) (u *token.User, ok bool, err error) {
 	return f(r, user, password)
 }
 
@@ -87,7 +87,7 @@ func (p DirectHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Errorf("no credential checker"), "no credential checker")
 		return
 	}
-	ok, err := p.CredChecker.Check(r, creds.User, creds.Password)
+	u, ok, err := p.CredChecker.Check(r, creds.User, creds.Password)
 	if err != nil {
 		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "failed to check user credentials")
 		return
@@ -97,20 +97,23 @@ func (p DirectHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := p.ProviderName + "_" + token.HashID(sha1.New(), creds.User)
-	if p.UserIDFunc != nil {
-		userID = p.ProviderName + "_" + token.HashID(sha1.New(), p.UserIDFunc(creds.User, r))
-	}
+	if u == nil {
+		userID := p.ProviderName + "_" + token.HashID(sha1.New(), creds.User)
+		if p.UserIDFunc != nil {
+			userID = p.ProviderName + "_" + token.HashID(sha1.New(), p.UserIDFunc(creds.User, r))
+		}
 
-	u := token.User{
-		Name: creds.User,
-		ID:   userID,
+		u = &token.User{
+			Name: creds.User,
+			ID:   userID,
+		}
 	}
-	u, err = setAvatar(p.AvatarSaver, u, &http.Client{Timeout: 5 * time.Second})
+	ua, err := setAvatar(p.AvatarSaver, *u, &http.Client{Timeout: 5 * time.Second})
 	if err != nil {
 		rest.SendErrorJSON(w, r, p.L, http.StatusInternalServerError, err, "failed to save avatar to proxy")
 		return
 	}
+	u = &ua
 
 	cid, err := randToken()
 	if err != nil {
@@ -119,7 +122,7 @@ func (p DirectHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	claims := token.Claims{
-		User: &u,
+		User: u,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:       cid,
 			Issuer:   p.Issuer,

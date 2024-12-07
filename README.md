@@ -143,9 +143,9 @@ Direct links to avatars won't survive any real-life usage if they linked from a 
 In addition to oauth2 providers `auth.Service` allows to use direct user-defined authentication. This is done by adding direct provider with `auth.AddDirectProvider`.
 
 ```go
-	service.AddDirectProvider("local", provider.CredCheckerFunc(func(user, password string) (ok bool, err error) {
+	service.AddDirectProvider("local", provider.CredCheckerFunc(func(user, password string) (u *token.User, ok bool, err error) {
 		ok, err = checkUserSomehow(user, password)
-		return ok, err
+		return nil, ok, err
 	}))
 ```
 
